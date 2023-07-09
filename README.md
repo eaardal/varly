@@ -47,6 +47,39 @@ varly more.hello_again.mom
 # hi mom
 ```
 
+### Sekret integration
+
+There is a tiny integration with the sibling project [Sekret](https://github.com/eaardal/sekret).
+If a value in `vars.yaml` is a Sekret command (such as `sekret get mysecret`), varly will evaluate (run) the command instead of just printing its value as is.
+
+This obviously requires `sekret` to be on your PATH to work. If `sekret` is not installed, varly will print the command as is.
+
+Example:
+
+Using Sekret, the value of some_api.password resolves to "123456":
+
+```shell
+sekret get some_api.password
+# 123456
+```
+
+In vars.yaml, insert the Sekret command as the password:
+
+```yaml
+some_api:
+  username: myself
+  password: sekret get some_api.password
+```
+
+Querying the password using varly will run the Sekret command and print its output:
+
+```shell
+varly some_api.password
+# 123456
+```
+
+The first word of the variable value must be "sekret" for this to work.
+
 ## Configuration options
 
 Set these environment variables to override defaults.

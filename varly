@@ -62,7 +62,18 @@ lookup_var() {
   # 3. ireduce will basically map/transform each key into a map/object where the property names are the environment variable name and the value is the environment variable's value: { hi: mom, some: thing }
   # 4. explode(.) will resolve aliases/references.
   # shellcheck disable=SC2016 disable=SC2002
-  cat "$VARLY_YAML" | VAR_PATH=$varPath $YQ '(strenv(VAR_PATH) | split(".") | .[]) as $i ireduce (. ; .[$i]) | explode(.)'
+  result=$(cat "$VARLY_YAML" | VAR_PATH=$varPath $YQ '(strenv(VAR_PATH) | split(".") | .[]) as $i ireduce (. ; .[$i]) | explode(.)')
+
+  # Check if the value starts with the word "sekret" and that sekret is available on our PATH.
+  if [[ "$result" = sekret* ]] && command -v sekret &>/dev/null; then
+    # If the value is a Sekret command (https://github.com/eaardal/sekret),
+    # evaluate (run) the command using Sekret to print the actual secret value.
+    eval "$result"
+  else
+    # If the value is not a Sekret command, just print it as is.
+    echo "$result"
+  fi
+
 }
 
 case $1 in
