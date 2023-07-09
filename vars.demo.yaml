@@ -1,0 +1,9 @@
+hello: &hello-section
+  world: &hello-world hi there
+  mom: hi mom
+more:
+  values:
+    etc: more values goes here
+    greeting: *hello-world
+  hello_again:
+    <<: *hello-section

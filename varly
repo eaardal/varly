@@ -1,0 +1,74 @@
+#!/bin/bash
+
+print_help() {
+  echo -e ""
+  echo -e "Usage:"
+  echo -e ""
+  echo -e "varly <path.to.value.in.yaml> - Invoke varly with the path to a field in your vars.yaml (or VARLY_FILE) file."
+  echo -e ""
+  echo -e "See the repo's readme file for a full example."
+}
+
+# Fail script immediately on any errors
+set -e
+
+# Required: VARLY_DIR should be set to the directory where the 'varly' script is located.
+if [ -z "$VARLY_DIR" ]; then
+  echo "Environment variable VARLY_DIR is not set. It should be set to the directory where the 'varly' executable is stored."
+  print_help
+  exit 1
+fi
+
+# If VARLY_FILE is set, use that, otherwise use default file name
+if [ -z "$VARLY_FILE" ]; then
+  VARLY_FILE="vars.yaml"
+fi
+
+# Location of yq to use. Recommend using bundled yq for versioning stability.
+if [ -n "$VARLY_YQ" ]; then
+  YQ=$VARLY_YQ
+else
+  YQ="$VARLY_DIR/bin/yq"
+fi
+
+if [ ! -f "$VARLY_DIR/$VARLY_FILE" ]; then
+  echo "No file was found at $VARLY_DIR/$VARLY_FILE. Ensure that VARLY_DIR and/or VARLY_FILE are pointing to a yaml file on disk"
+  print_help
+  exit 1
+fi
+
+lookup_var() {
+  if [ -z "$1" ]; then echo "No var field path provided" && print_help && exit 1; fi
+  local varPath=$1
+
+  # Part of the below YQ crazyness is explained here: https://github.com/mikefarah/yq/issues/922
+  # Read ireduce docs here: https://mikefarah.gitbook.io/yq/operators/reduce
+  # Read explode docs here: https://mikefarah.gitbook.io/yq/operators/anchor-and-alias-operators#explode-alias-and-anchor
+  # ---
+  # Example yaml:
+  # my:
+  #   cool:
+  #     thing:
+  #       hi: mom
+  #       some: thing
+  # ---
+  # 1. Set $VAR_PATH as a environment variable that yq can use
+  # 2. Split VAR_PATH by dots (ex: my.cool.thing -> [my, cool, thing])
+  # 3. ireduce will basically map/transform each key into a map/object where the property names are the environment variable name and the value is the environment variable's value: { hi: mom, some: thing }
+  # 4. explode(.) will resolve aliases/references.
+  # shellcheck disable=SC2016 disable=SC2002
+  cat "$VARLY_DIR/$VARLY_FILE" | VAR_PATH=$varPath $YQ '(strenv(VAR_PATH) | split(".") | .[]) as $i ireduce (. ; .[$i]) | explode(.)'
+}
+
+case $1 in
+"help")
+  print_help
+  exit 0
+  ;;
+*)
+  lookup_var "$@"
+  ;;
+esac
+
+# Restore bash error flag
+set +e
