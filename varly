@@ -24,6 +24,11 @@ if [ -z "$VARLY_FILE" ]; then
   VARLY_FILE="vars.yaml"
 fi
 
+# If VARLY_YAML is set, use that, otherwise use default full path to varly yaml file
+if [ -z "$VARLY_YAML" ]; then
+  VARLY_YAML="$VARLY_DIR/$VARLY_FILE"
+fi
+
 # Location of yq to use. Recommend using bundled yq for versioning stability.
 if [ -n "$VARLY_YQ" ]; then
   YQ=$VARLY_YQ
@@ -31,8 +36,8 @@ else
   YQ="$VARLY_DIR/bin/yq"
 fi
 
-if [ ! -f "$VARLY_DIR/$VARLY_FILE" ]; then
-  echo "No file was found at $VARLY_DIR/$VARLY_FILE. Ensure that VARLY_DIR and/or VARLY_FILE are pointing to a yaml file on disk"
+if [ ! -f "$VARLY_YAML" ]; then
+  echo "No file was found at $VARLY_YAML. Ensure that VARLY_YAML, VARLY_DIR and/or VARLY_FILE are pointing to a yaml file on disk. VARLY_YAML overrides VARLY_DIR+VARLY_FILE if it is set, otherwise we're looking for the file VARLY_DIR/VARLY_FILE."
   print_help
   exit 1
 fi
@@ -57,7 +62,7 @@ lookup_var() {
   # 3. ireduce will basically map/transform each key into a map/object where the property names are the environment variable name and the value is the environment variable's value: { hi: mom, some: thing }
   # 4. explode(.) will resolve aliases/references.
   # shellcheck disable=SC2016 disable=SC2002
-  cat "$VARLY_DIR/$VARLY_FILE" | VAR_PATH=$varPath $YQ '(strenv(VAR_PATH) | split(".") | .[]) as $i ireduce (. ; .[$i]) | explode(.)'
+  cat "$VARLY_YAML" | VAR_PATH=$varPath $YQ '(strenv(VAR_PATH) | split(".") | .[]) as $i ireduce (. ; .[$i]) | explode(.)'
 }
 
 case $1 in
