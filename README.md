@@ -8,6 +8,14 @@ Uses a yaml file to store groups of variables. The script is a thin wrapper usin
 
 At the moment the script only reads values from the yaml file so you must manually edit the yaml file to add or edit something in it.
 
+## How to get started
+
+1. Put the `varly` bash script in this repo in a directory that's included in your PATH.
+2. Add `export VARLY_DIR=your/path/to/varly/dir` In your .zshrc, .bashrc or similar.
+3. Either put the `bin` directory with `yq` in this repo as a sub-directory to wherever you placed the `varly` script, or set `VARLY_YQ` to your own version of yq.
+
+See [Configuration options](#configuration-options) for further (optional) setup.
+
 ## How to use
 
 Given this yaml:
@@ -43,11 +51,11 @@ varly more.hello_again.mom
 
 Set these environment variables to override defaults.
 
-| Variable     | Description                                       | Defaults to                                                      |
-| ------------ | ------------------------------------------------- | ---------------------------------------------------------------- |
-| `VARLY_DIR`  | Path to the directory where `varly` is located.   | [Required] You must set this in your .zshrc, .bashrc or similar. |
-| `VARLY_FILE` | Name of the yaml file where variables are stored. | `vars.yaml`                                                      |
-| `VARLY_YQ`   | Path to the `yq` executable to use.               | `$VARLY_DIR/bin/yq`                                              |
+| Variable     | Description                                       | Defaults to                                                                    |
+| ------------ | ------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `VARLY_DIR`  | Path to the directory where `varly` is located.   | :exclamation: [Required] You must set this in your .zshrc, .bashrc or similar. |
+| `VARLY_FILE` | Name of the yaml file where variables are stored. | `vars.yaml`                                                                    |
+| `VARLY_YQ`   | Path to the `yq` executable to use.               | `$VARLY_DIR/bin/yq`                                                            |
 
 # YAML tips
 
